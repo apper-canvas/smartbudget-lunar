@@ -234,3 +234,4 @@ return true;
 }
 
 const profileService = new ProfileService();
+export default profileService;
