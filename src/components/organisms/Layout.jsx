@@ -18,7 +18,7 @@ const { logout } = useContext(AuthContext);
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+<div className="flex-1 flex flex-col overflow-hidden md:ml-64">
           {/* Mobile Header */}
           <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3">
             <div className="flex items-center justify-between">
