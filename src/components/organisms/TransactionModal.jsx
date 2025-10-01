@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import { toast } from "react-toastify";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
-
+import profileService from "@/services/api/profileService";
 const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -79,8 +79,53 @@ const handleSubmit = async (e) => {
         await transactionService.update(transaction.Id, transactionData);
         toast.success("Transaction updated successfully");
       } else {
-        await transactionService.create(transactionData);
+        const createdTransaction = await transactionService.create(transactionData);
         toast.success("Transaction added successfully");
+
+        // Send email notification for new transactions
+        try {
+          const profiles = await profileService.getAll();
+          if (profiles && profiles.length > 0) {
+            const userProfile = profiles[0];
+            const userEmail = userProfile.email_id_c;
+
+            if (userEmail) {
+              const { ApperClient } = window.ApperSDK;
+              const apperClient = new ApperClient({
+                apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+                apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+              });
+
+              const emailResult = await apperClient.functions.invoke(
+                import.meta.env.VITE_SEND_TRANSACTION_EMAIL,
+                {
+                  body: JSON.stringify({
+                    recipientEmail: userEmail,
+                    transaction: {
+                      ...transactionData,
+                      category_c: categories.find(cat => cat.Id === parseInt(formData.category_c))
+                    }
+                  }),
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+
+              if (emailResult.success === false) {
+                console.info(`apper_info: An error was received in this function: ${import.meta.env.VITE_SEND_TRANSACTION_EMAIL}. The response body is: ${JSON.stringify(emailResult)}.`);
+                toast.warning("Transaction saved, but email notification failed");
+              } else {
+                toast.success("Email notification sent!");
+              }
+            } else {
+              toast.warning("Transaction saved, but no email address found in profile");
+            }
+          }
+        } catch (emailError) {
+          console.info(`apper_info: An error was received in this function: ${import.meta.env.VITE_SEND_TRANSACTION_EMAIL}. The error is: ${emailError.message}`);
+          toast.warning("Transaction saved, but email notification failed");
+        }
       }
 
       onSuccess();
