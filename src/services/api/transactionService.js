@@ -13,7 +13,7 @@ class TransactionService {
     this.tableName = "transaction_c";
   }
 
-  async getAll() {
+async getAll() {
     try {
       const params = {
         fields: [
@@ -28,7 +28,7 @@ class TransactionService {
         ]
       };
 
-      const response = await this.apperClient.getRecords(this.tableName, params);
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
 
       if (!response.success) {
         console.error(response.message);
@@ -42,7 +42,7 @@ class TransactionService {
     }
   }
 
-  async getById(id) {
+async getById(id) {
     try {
       const params = {
         RecordIds: [id],
@@ -58,7 +58,7 @@ class TransactionService {
         ]
       };
 
-      const response = await this.apperClient.getRecords(this.tableName, params);
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
 
       if (!response.success) {
         console.error(response.message);
