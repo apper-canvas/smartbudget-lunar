@@ -69,7 +69,7 @@ const handleSubmit = async (e) => {
       const transactionData = {
         amount_c: parseFloat(formData.amount_c),
         type_c: formData.type_c,
-        category_c: formData.category_c,
+category_c: parseInt(formData.category_c?.Id || formData.category_c),
         description_c: formData.description_c,
         date_c: new Date(formData.date_c).toISOString(),
         created_at_c: new Date().toISOString()
