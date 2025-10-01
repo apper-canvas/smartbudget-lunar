@@ -186,13 +186,51 @@ if (updateData.Name !== undefined) payload.Name = updateData.Name;
         }
       }
 
-      return true;
+return true;
     } catch (error) {
       console.error("Error deleting profile:", error?.response?.data?.message || error);
       throw error;
     }
   }
+
+  async getProfile() {
+    try {
+      const params = {
+        fields: [
+          { field: { Name: "Id" } },
+          { field: { Name: "Name" } },
+          { field: { Name: "Tags" } },
+          { field: { name: "Owner" }, referenceField: { field: { Name: "Name" } } },
+          { field: { Name: "CreatedOn" } },
+          { field: { name: "CreatedBy" }, referenceField: { field: { Name: "Name" } } },
+          { field: { Name: "ModifiedOn" } },
+          { field: { name: "ModifiedBy" }, referenceField: { field: { Name: "Name" } } },
+          { field: { Name: "name_c" } },
+          { field: { Name: "avatar_c" } },
+          { field: { Name: "website_c" } },
+          { field: { Name: "bio_c" } },
+          { field: { Name: "email_id_c" } }
+        ],
+        pagingInfo: { limit: 1, offset: 0 }
+      };
+
+      const response = await this.apperClient.fetchRecords(this.tableName, params);
+
+      if (!response.success) {
+        console.error(response.message);
+        return null;
+      }
+
+      if (!response.data || response.data.length === 0) {
+        return null;
+      }
+
+      return response.data[0];
+    } catch (error) {
+      console.error("Error fetching current user profile:", error?.response?.data?.message || error);
+      return null;
+    }
+  }
 }
 
 const profileService = new ProfileService();
-export default profileService;
