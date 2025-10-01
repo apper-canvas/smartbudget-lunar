@@ -1,12 +1,13 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Sidebar from "@/components/organisms/Sidebar";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
-import { AuthContext } from "../../App";
+import Sidebar from "@/components/organisms/Sidebar";
+import { useAuth } from "@/contexts/AuthContext";
+
 const Layout = () => {
+  const { logout } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { logout } = useContext(AuthContext);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
