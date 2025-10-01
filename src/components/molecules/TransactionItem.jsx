@@ -4,8 +4,9 @@ import Badge from "@/components/atoms/Badge";
 import { format } from "date-fns";
 
 const TransactionItem = ({ transaction, onEdit, onDelete }) => {
-  const amount = transaction.amount_c || transaction.amount;
+const amount = transaction.amount_c || transaction.amount;
   const type = transaction.type_c || transaction.type;
+  const title = transaction.title_c || transaction.title;
   const description = transaction.description_c || transaction.description;
   const categoryName = transaction.category_c?.Name || transaction.category;
   const date = transaction.date_c || transaction.date;
@@ -62,8 +63,8 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
           </div>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">
-            {description}
+<p className="text-sm font-medium text-gray-900 truncate">
+            {title || description}
           </p>
           <div className="flex items-center space-x-2 mt-1">
             <Badge variant={type === "income" ? "success" : "default"} size="sm">

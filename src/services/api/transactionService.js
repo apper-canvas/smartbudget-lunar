@@ -18,7 +18,8 @@ async getAll() {
       const params = {
         fields: [
           { field: { Name: "Id" } },
-          { field: { Name: "Name" } },
+{ field: { Name: "Name" } },
+          { field: { Name: "title_c" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
           { field: { Name: "description_c" } },
@@ -46,9 +47,10 @@ async getById(id) {
     try {
       const params = {
         RecordIds: [id],
-        fields: [
+fields: [
           { field: { Name: "Id" } },
           { field: { Name: "Name" } },
+          { field: { Name: "title_c" } },
           { field: { Name: "amount_c" } },
           { field: { Name: "type_c" } },
           { field: { Name: "description_c" } },
@@ -76,7 +78,8 @@ async create(transactionData) {
       const params = {
         records: [
           {
-            Name: transactionData.description_c || transactionData.description || "Transaction",
+Name: transactionData.title_c || transactionData.title || transactionData.description_c || transactionData.description || "Transaction",
+            title_c: transactionData.title_c || transactionData.title,
             amount_c: parseFloat(transactionData.amount_c || transactionData.amount),
             type_c: transactionData.type_c || transactionData.type,
             category_c: transactionData.category_c?.Id || transactionData.category_c || transactionData.category,
@@ -165,7 +168,8 @@ const profile = await profileService.getProfile();
   async update(id, updateData) {
     try {
       const payload = {
-        Id: id,
+Id: id,
+        title_c: updateData.title_c || updateData.title,
         amount_c: parseFloat(updateData.amount_c || updateData.amount),
         type_c: updateData.type_c || updateData.type,
         category_c: updateData.category_c?.Id || updateData.category_c || updateData.category,

@@ -11,7 +11,8 @@ import profileService from "@/services/api/profileService";
 const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
+    title_c: "",
     amount_c: "",
     type_c: "expense",
     category_c: "",
@@ -31,7 +32,8 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
       const description = transaction.description_c || transaction.description;
       const date = transaction.date_c || transaction.date;
       
-      setFormData({
+setFormData({
+        title_c: transaction.title_c || "",
         amount_c: amount.toString(),
         type_c: type,
         category_c: categoryId,
@@ -40,6 +42,7 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
       });
     } else {
       setFormData({
+title_c: "",
         amount_c: "",
         type_c: "expense",
         category_c: "",
@@ -59,14 +62,15 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
 
 const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.amount_c || !formData.category_c || !formData.description_c) {
+if (!formData.title_c || !formData.amount_c || !formData.category_c || !formData.description_c) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     setLoading(true);
     try {
-      const transactionData = {
+const transactionData = {
+        title_c: formData.title_c,
         amount_c: parseFloat(formData.amount_c),
         type_c: formData.type_c,
 category_c: parseInt(formData.category_c?.Id || formData.category_c),
@@ -101,8 +105,9 @@ const profiles = await profileService.getAll();
                 {
                   body: JSON.stringify({
                     recipientEmail: userEmail,
-                    transaction: {
+transaction: {
                       ...transactionData,
+                      title_c: formData.title_c,
                       category_c: categories.find(cat => cat.Id === parseInt(formData.category_c))
                     }
                   }),
@@ -211,6 +216,15 @@ value={formData.amount_c}
                     required
                   />
                 </div>
+
+<FormField
+                  type="input"
+                  label="Title"
+                  placeholder="Enter transaction title"
+                  value={formData.title_c}
+                  onChange={(e) => handleChange("title_c", e.target.value)}
+                  required
+                />
 
 <FormField
                   type="select"

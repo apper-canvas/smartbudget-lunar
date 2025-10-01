@@ -77,10 +77,12 @@ const getFilteredTransactions = () => {
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(transaction => {
+filtered = filtered.filter(transaction => {
+        const title = transaction.title_c || transaction.title || "";
         const description = transaction.description_c || transaction.description || "";
         const categoryName = transaction.category_c?.Name || transaction.category || "";
-        return description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        return title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                categoryName.toLowerCase().includes(searchTerm.toLowerCase());
       });
     }
