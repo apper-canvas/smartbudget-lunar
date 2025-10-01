@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import Card from "@/components/atoms/Card";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
 import ApperIcon from "@/components/ApperIcon";
-import Loading from "@/components/ui/Loading";
+import Button from "@/components/atoms/Button";
+import Card from "@/components/atoms/Card";
+import FormField from "@/components/molecules/FormField";
 import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
 import profileService from "@/services/api/profileService";
 
 const Profile = () => {
@@ -16,11 +16,12 @@ const Profile = () => {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     name_c: "",
     avatar_c: "",
     website_c: "",
-    bio_c: ""
+    bio_c: "",
+    email_id_c: ""
   });
 
   useEffect(() => {
@@ -43,9 +44,9 @@ const loadProfile = async () => {
           name_c: user.firstName || user.emailAddress || "User",
           avatar_c: "",
           website_c: "",
-          bio_c: ""
+          bio_c: "",
+          email_id_c: user.emailAddress || ""
         });
-        toast.success("Profile created successfully");
         // Reload the profile after creation
         await loadProfile();
         return;
@@ -56,7 +57,8 @@ const loadProfile = async () => {
         name_c: data.name_c || "",
         avatar_c: data.avatar_c || "",
         website_c: data.website_c || "",
-        bio_c: data.bio_c || ""
+        bio_c: data.bio_c || "",
+        email_id_c: data.email_id_c || ""
       });
     } catch (err) {
       setError(err.message);
@@ -74,16 +76,16 @@ const loadProfile = async () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdating(true);
     try {
-      await profileService.update(user.userId, {
-        Name: formData.name_c,
+      const updatedProfile = await profileService.update(profile.Id, {
         name_c: formData.name_c,
         avatar_c: formData.avatar_c,
         website_c: formData.website_c,
-        bio_c: formData.bio_c
+        bio_c: formData.bio_c,
+        email_id_c: formData.email_id_c
       });
       toast.success("Profile updated successfully");
       setIsEditing(false);
@@ -95,12 +97,13 @@ const loadProfile = async () => {
     }
   };
 
-  const handleCancel = () => {
+const handleCancel = () => {
     setFormData({
       name_c: profile?.name_c || "",
       avatar_c: profile?.avatar_c || "",
       website_c: profile?.website_c || "",
-      bio_c: profile?.bio_c || ""
+      bio_c: profile?.bio_c || "",
+      email_id_c: profile?.email_id_c || ""
     });
     setIsEditing(false);
   };
@@ -180,12 +183,19 @@ const loadProfile = async () => {
               getInitials(profile?.name_c || user?.firstName)
             )}
           </div>
-          <div className="flex-1 text-center sm:text-left">
+<div className="flex-1 text-center sm:text-left">
             <h2 className="text-2xl font-bold text-gray-900">
-              {profile?.name_c || user?.firstName + " " + user?.lastName}
+              {profile?.name_c || user?.firstName || "User"}
             </h2>
             <p className="text-gray-600 mt-1">{user?.emailAddress}</p>
-            {profile?.website_c && (
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">Email Id</label>
+            <p className="text-gray-900 mt-1">{profile?.email_id_c || "Not provided"}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">Website</label>
+            {profile?.website_c ? (
               <a
                 href={profile.website_c}
                 target="_blank"
@@ -195,6 +205,8 @@ const loadProfile = async () => {
                 <ApperIcon name="Globe" size={16} />
                 {profile.website_c}
               </a>
+            ) : (
+              <p className="text-gray-900 mt-1">Not provided</p>
             )}
           </div>
         </div>
@@ -305,7 +317,7 @@ const loadProfile = async () => {
               onChange={handleInputChange}
               placeholder="https://example.com/avatar.jpg"
             />
-            <FormField
+<FormField
               label="Website"
               name="website_c"
               type="url"
@@ -313,8 +325,17 @@ const loadProfile = async () => {
               onChange={handleInputChange}
               placeholder="https://yourwebsite.com"
             />
+            <FormField
+              label="Email Id"
+              name="email_id_c"
+              type="email"
+              value={formData.email_id_c}
+              onChange={handleInputChange}
+              placeholder="your.email@example.com"
+              required
+            />
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Bio
               </label>
               <textarea

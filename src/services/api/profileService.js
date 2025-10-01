@@ -21,10 +21,12 @@ class ProfileService {
           { field: { Name: "ModifiedOn" } },
           { field: { name: "ModifiedBy" }, referenceField: { field: { Name: "Name" } } },
           { field: { Name: "name_c" } },
+{ field: { Name: "website_c" } },
           { field: { Name: "avatar_c" } },
-          { field: { Name: "website_c" } },
-          { field: { Name: "bio_c" } }
-        ]
+          { field: { Name: "bio_c" } },
+{ field: { Name: "email_id_c" } }
+        ],
+        pagingInfo: { limit: 20, offset: 0 }
       };
 
       const response = await this.apperClient.fetchRecords(this.tableName, params);
@@ -48,7 +50,7 @@ async getById(id) {
           { field: { Name: "Id" } },
           { field: { Name: "Name" } },
           { field: { Name: "Tags" } },
-          { field: { name: "Owner" }, referenceField: { field: { Name: "Name" } } },
+{ field: { name: "Owner" }, referenceField: { field: { Name: "Name" } } },
           { field: { Name: "CreatedOn" } },
           { field: { name: "CreatedBy" }, referenceField: { field: { Name: "Name" } } },
           { field: { Name: "ModifiedOn" } },
@@ -56,7 +58,8 @@ async getById(id) {
           { field: { Name: "name_c" } },
           { field: { Name: "avatar_c" } },
           { field: { Name: "website_c" } },
-          { field: { Name: "bio_c" } }
+          { field: { Name: "bio_c" } },
+          { field: { Name: "email_id_c" } }
         ]
       };
 
@@ -82,13 +85,14 @@ async getById(id) {
   async create(profileData) {
     try {
       const params = {
-        records: [
+records: [
           {
             Name: profileData.Name || profileData.name_c,
             name_c: profileData.name_c,
             avatar_c: profileData.avatar_c,
             website_c: profileData.website_c,
-            bio_c: profileData.bio_c
+            bio_c: profileData.bio_c,
+            email_id_c: profileData.email_id_c
           }
         ]
       };
@@ -124,12 +128,12 @@ async getById(id) {
         Id: id
       };
 
-      if (updateData.Name !== undefined) payload.Name = updateData.Name;
+if (updateData.Name !== undefined) payload.Name = updateData.Name;
       if (updateData.name_c !== undefined) payload.name_c = updateData.name_c;
       if (updateData.avatar_c !== undefined) payload.avatar_c = updateData.avatar_c;
       if (updateData.website_c !== undefined) payload.website_c = updateData.website_c;
       if (updateData.bio_c !== undefined) payload.bio_c = updateData.bio_c;
-
+      if (updateData.email_id_c !== undefined) payload.email_id_c = updateData.email_id_c;
       const params = {
         records: [payload]
       };
