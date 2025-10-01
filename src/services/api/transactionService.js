@@ -1,5 +1,7 @@
 import { toast } from "react-toastify";
-import { profileService } from "./profileService";
+import React from "react";
+import Error from "@/components/ui/Error";
+import profileService from "@/services/api/profileService";
 
 const { ApperClient } = window.ApperSDK;
 
