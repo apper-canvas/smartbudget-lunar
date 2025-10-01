@@ -41,7 +41,7 @@ class ProfileService {
     }
   }
 
-  async getById(id) {
+async getById(id) {
     try {
       const params = {
         fields: [
@@ -63,6 +63,11 @@ class ProfileService {
       const response = await this.apperClient.getRecordById(this.tableName, id, params);
 
       if (!response.success) {
+        // If record doesn't exist, return null instead of throwing
+        if (response.message === "Record does not exist") {
+          console.info(`Profile ${id} does not exist`);
+          return null;
+        }
         console.error(response.message);
         throw new Error(response.message);
       }

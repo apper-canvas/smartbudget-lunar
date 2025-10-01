@@ -29,11 +29,28 @@ const Profile = () => {
     }
   }, [user]);
 
-  const loadProfile = async () => {
+const loadProfile = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await profileService.getById(user.userId);
+      
+      // If profile doesn't exist, create it
+      if (!data) {
+        toast.info("Creating your profile...");
+        const newProfile = await profileService.create({
+          Name: user.firstName || user.emailAddress || "User",
+          name_c: user.firstName || user.emailAddress || "User",
+          avatar_c: "",
+          website_c: "",
+          bio_c: ""
+        });
+        toast.success("Profile created successfully");
+        // Reload the profile after creation
+        await loadProfile();
+        return;
+      }
+      
       setProfile(data);
       setFormData({
         name_c: data.name_c || "",
