@@ -12,7 +12,8 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
+    title_c: "",
     category_c: "",
     limit_c: "",
     month_c: "",
@@ -30,12 +31,14 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
 
 useEffect(() => {
 if (budget) {
-      const categoryId = budget.category_c?.Id || budget.category_c || budget.category;
+const categoryId = budget.category_c?.Id || budget.category_c || budget.category;
       const limit = budget.limit_c || budget.limit;
       const month = budget.month_c || budget.month;
       const year = budget.year_c || budget.year;
+      const title = budget.title_c || budget.title;
       
       setFormData({
+        title_c: title || "",
         category_c: parseInt(categoryId) || "",
         limit_c: limit.toString(),
         month_c: month,
@@ -70,7 +73,8 @@ const handleSubmit = async (e) => {
         throw new Error("Please fill in all required fields");
       }
 
-      const budgetData = {
+const budgetData = {
+        title_c: formData.title_c,
         category_c: parseInt(formData.category_c),
         limit_c: parseFloat(formData.limit_c),
         spent_c: budget?.spent_c || budget?.spent || 0,
@@ -151,7 +155,15 @@ const getCategoryOptions = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+<form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <FormField
+                  type="input"
+                  inputType="text"
+                  label="Budget Title (Optional)"
+                  placeholder="e.g., Monthly Groceries Budget"
+                  value={formData.title_c}
+                  onChange={(e) => handleChange("title_c", e.target.value)}
+                />
 <FormField
                   type="select"
                   label="Category"

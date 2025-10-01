@@ -9,6 +9,7 @@ const BudgetCard = ({ budget, onEdit }) => {
   const categoryName = budget.category_c?.Name || budget.category;
   const month = budget.month_c || budget.month;
   const year = budget.year_c || budget.year;
+  const title = budget.title_c || budget.title;
   
   const percentage = limit > 0 ? (spent / limit) * 100 : 0;
   const remaining = limit - spent;
@@ -69,8 +70,9 @@ const BudgetCard = ({ budget, onEdit }) => {
               }
             />
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">{categoryName}</h3>
+<div>
+            <h3 className="font-semibold text-gray-900">{title || categoryName}</h3>
+            {title && <p className="text-xs text-gray-600">{categoryName}</p>}
             <p className="text-sm text-gray-500">
               {month} {year}
             </p>
