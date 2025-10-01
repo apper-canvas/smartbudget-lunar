@@ -84,7 +84,7 @@ category_c: parseInt(formData.category_c?.Id || formData.category_c),
 
         // Send email notification for new transactions
         try {
-          const profiles = await profileService.getAll();
+const profiles = await profileService.getAll();
           if (profiles && profiles.length > 0) {
             const userProfile = profiles[0];
             const userEmail = userProfile.email_id_c;
