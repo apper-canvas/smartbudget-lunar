@@ -84,8 +84,8 @@ class BudgetService {
       const params = {
         records: [
           {
-            Name: `${budgetData.category || budgetData.category_c} Budget`,
-            category_c: budgetData.category_c?.Id || budgetData.category_c || budgetData.category,
+Name: `${budgetData.category || budgetData.category_c} Budget`,
+            category_c: parseInt(budgetData.category_c?.Id || budgetData.category_c || budgetData.category),
             limit_c: parseFloat(budgetData.limit_c || budgetData.limit),
             spent_c: parseFloat(budgetData.spent_c || budgetData.spent || 0),
             month_c: budgetData.month_c || budgetData.month,

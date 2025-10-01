@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import Button from "@/components/atoms/Button";
-import FormField from "@/components/molecules/FormField";
-import ApperIcon from "@/components/ApperIcon";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { budgetService } from "@/services/api/budgetService";
 import { categoryService } from "@/services/api/categoryService";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import FormField from "@/components/molecules/FormField";
+import Error from "@/components/ui/Error";
 
 const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     category_c: "",
     limit_c: "",
@@ -27,14 +29,14 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
   }, []);
 
 useEffect(() => {
-    if (budget) {
+if (budget) {
       const categoryId = budget.category_c?.Id || budget.category_c || budget.category;
       const limit = budget.limit_c || budget.limit;
       const month = budget.month_c || budget.month;
       const year = budget.year_c || budget.year;
       
       setFormData({
-        category_c: categoryId,
+        category_c: parseInt(categoryId) || "",
         limit_c: limit.toString(),
         month_c: month,
         year_c: year
@@ -60,15 +62,16 @@ const loadCategories = async () => {
   };
 const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.category_c || !formData.limit_c) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
     setLoading(true);
+    setError("");
+
     try {
+      if (!formData.category_c || !formData.limit_c || !formData.month_c) {
+        throw new Error("Please fill in all required fields");
+      }
+
       const budgetData = {
-        category_c: formData.category_c,
+        category_c: parseInt(formData.category_c),
         limit_c: parseFloat(formData.limit_c),
         spent_c: budget?.spent_c || budget?.spent || 0,
         month_c: formData.month_c,
