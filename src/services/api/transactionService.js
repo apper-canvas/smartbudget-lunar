@@ -122,9 +122,8 @@ async create(transactionData) {
                 apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
                 apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
               });
-
-              // Invoke edge function to send email
-              const emailResponse = await emailClient.functions.invoke(
+// Invoke edge function to send email
+              const emailResult = await emailClient.functions.invoke(
                 import.meta.env.VITE_SEND_TRANSACTION_EMAIL,
                 {
                   body: JSON.stringify({
@@ -136,10 +135,6 @@ async create(transactionData) {
                   }
                 }
               );
-
-              // Parse response
-              const emailResult = await emailResponse.json();
-
               // Check for response errors
               if (emailResult.success === false) {
                 console.info(`apper_info: An error was received in this function: ${import.meta.env.VITE_SEND_TRANSACTION_EMAIL}. The response body is: ${JSON.stringify(emailResult)}.`);
