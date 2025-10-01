@@ -1,8 +1,11 @@
+import { toast } from "react-toastify";
+import { profileService } from "./profileService";
+
+const { ApperClient } = window.ApperSDK;
+
 class TransactionService {
   constructor() {
-    const { ApperClient } = window.ApperSDK;
     this.apperClient = new ApperClient({
-      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
       apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
     });
     this.tableName = "transaction_c";
@@ -18,13 +21,12 @@ class TransactionService {
           { field: { Name: "type_c" } },
           { field: { Name: "description_c" } },
           { field: { Name: "date_c" } },
-          { field: { Name: "created_at_c" } },
-          { field: { name: "category_c" }, referenceField: { field: { Name: "Name" } } }
-        ],
-        orderBy: [{ fieldName: "date_c", sorttype: "DESC" }]
+          { field: { Name: "category_c" } },
+          { field: { Name: "created_at_c" } }
+        ]
       };
 
-      const response = await this.apperClient.fetchRecords(this.tableName, params);
+      const response = await this.apperClient.getRecords(this.tableName, params);
 
       if (!response.success) {
         console.error(response.message);
@@ -41,6 +43,7 @@ class TransactionService {
   async getById(id) {
     try {
       const params = {
+        RecordIds: [id],
         fields: [
           { field: { Name: "Id" } },
           { field: { Name: "Name" } },
@@ -48,26 +51,25 @@ class TransactionService {
           { field: { Name: "type_c" } },
           { field: { Name: "description_c" } },
           { field: { Name: "date_c" } },
-          { field: { Name: "created_at_c" } },
-          { field: { name: "category_c" }, referenceField: { field: { Name: "Name" } } }
+          { field: { Name: "category_c" } },
+          { field: { Name: "created_at_c" } }
         ]
       };
 
-      const response = await this.apperClient.getRecordById(this.tableName, id, params);
+      const response = await this.apperClient.getRecords(this.tableName, params);
 
       if (!response.success) {
         console.error(response.message);
         throw new Error(response.message);
       }
 
-      return response.data;
+      return response.data?.[0] || null;
     } catch (error) {
       console.error(`Error fetching transaction ${id}:`, error?.response?.data?.message || error);
       throw error;
     }
   }
-
-  async create(transactionData) {
+async create(transactionData) {
     try {
       const params = {
         records: [
@@ -87,18 +89,74 @@ class TransactionService {
 
       if (!response.success) {
         console.error(response.message);
+        toast.error(response.message);
         throw new Error(response.message);
       }
 
       if (response.results) {
+        const successful = response.results.filter(r => r.success);
         const failed = response.results.filter(r => !r.success);
+
         if (failed.length > 0) {
-          console.error(`Failed to create transaction:`, failed);
+          console.error(`Failed to create transaction: ${JSON.stringify(failed)}`);
           failed.forEach(record => {
-            if (record.message) throw new Error(record.message);
+            if (record.message) toast.error(record.message);
           });
+          throw new Error(failed[0]?.message || "Failed to create transaction");
         }
-        return response.results.find(r => r.success)?.data;
+
+        if (successful.length > 0) {
+          const createdTransaction = successful[0].data;
+          toast.success('Transaction created successfully');
+
+          // Send email notification
+          try {
+            // Fetch user profile to get email address
+            const profile = await profileService.getProfile();
+            
+            if (profile && profile.email_c) {
+              // Initialize ApperClient for edge function
+              const emailClient = new ApperClient({
+                apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
+                apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
+              });
+
+              // Invoke edge function to send email
+              const emailResponse = await emailClient.functions.invoke(
+                import.meta.env.VITE_SEND_TRANSACTION_EMAIL,
+                {
+                  body: JSON.stringify({
+                    recipientEmail: profile.email_c,
+                    transaction: createdTransaction
+                  }),
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                }
+              );
+
+              // Parse response
+              const emailResult = await emailResponse.json();
+
+              // Check for response errors
+              if (emailResult.success === false) {
+                console.info(`apper_info: An error was received in this function: ${import.meta.env.VITE_SEND_TRANSACTION_EMAIL}. The response body is: ${JSON.stringify(emailResult)}.`);
+                toast.warning('Transaction created but email notification failed');
+              } else {
+                toast.success('Email notification sent successfully');
+              }
+            } else {
+              console.info('apper_info: Profile email not found, skipping email notification');
+              toast.info('Transaction created (email not configured in profile)');
+            }
+          } catch (emailError) {
+            // Log edge function invocation errors
+            console.info(`apper_info: An error was received in this function: ${import.meta.env.VITE_SEND_TRANSACTION_EMAIL}. The error is: ${emailError.message}`);
+            toast.warning('Transaction created but email notification failed');
+          }
+
+          return createdTransaction;
+        }
       }
 
       return response.data;
@@ -107,7 +165,6 @@ class TransactionService {
       throw error;
     }
   }
-
   async update(id, updateData) {
     try {
       const payload = {
