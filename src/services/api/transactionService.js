@@ -5,8 +5,9 @@ import profileService from "@/services/api/profileService";
 const { ApperClient } = window.ApperSDK;
 
 class TransactionService {
-  constructor() {
+constructor() {
     this.apperClient = new ApperClient({
+      apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
       apperPublicKey: import.meta.env.VITE_APPER_PUBLIC_KEY
     });
     this.tableName = "transaction_c";
