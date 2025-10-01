@@ -114,9 +114,9 @@ async create(transactionData) {
           // Send email notification
           try {
             // Fetch user profile to get email address
-            const profile = await profileService.getProfile();
+const profile = await profileService.getProfile();
             
-            if (profile && profile.email_c) {
+            if (profile && profile.email_id_c) {
               // Initialize ApperClient for edge function
               const emailClient = new ApperClient({
                 apperProjectId: import.meta.env.VITE_APPER_PROJECT_ID,
@@ -127,7 +127,7 @@ async create(transactionData) {
                 import.meta.env.VITE_SEND_TRANSACTION_EMAIL,
                 {
                   body: JSON.stringify({
-                    recipientEmail: profile.email_c,
+                    recipientEmail: profile.email_id_c,
                     transaction: createdTransaction
                   }),
                   headers: {
