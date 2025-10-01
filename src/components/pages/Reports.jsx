@@ -1,15 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import SpendingChart from "@/components/organisms/SpendingChart";
-import StatsCard from "@/components/molecules/StatsCard";
-import Button from "@/components/atoms/Button";
-import Select from "@/components/atoms/Select";
-import ApperIcon from "@/components/ApperIcon";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
 import { transactionService } from "@/services/api/transactionService";
 import { budgetService } from "@/services/api/budgetService";
-import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, parseISO } from "date-fns";
+import { eachDayOfInterval, endOfMonth, format, parseISO, startOfMonth, subMonths } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import Budget from "@/components/pages/Budget";
+import Transactions from "@/components/pages/Transactions";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import SpendingChart from "@/components/organisms/SpendingChart";
+import StatsCard from "@/components/molecules/StatsCard";
+import Error from "@/components/ui/Error";
+import Loading from "@/components/ui/Loading";
 
 const Reports = () => {
   const [transactions, setTransactions] = useState([]);
@@ -75,25 +77,26 @@ const Reports = () => {
     if (!startDate || !endDate) return transactions;
 
     return transactions.filter(transaction => {
-      const transactionDate = parseISO(transaction.date);
+const transactionDate = parseISO(transaction.date_c || transaction.date);
       return transactionDate >= startDate && transactionDate <= endDate;
     });
   };
 
   const getReportStats = () => {
     const filtered = getFilteredTransactions();
-    const income = filtered.filter(t => t.type === "income");
-    const expenses = filtered.filter(t => t.type === "expense");
+const income = filtered.filter(t => (t.type_c || t.type) === "income");
+    const expenses = filtered.filter(t => (t.type_c || t.type) === "expense");
 
-    const totalIncome = income.reduce((sum, t) => sum + t.amount, 0);
-    const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+const totalIncome = income.reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
+    const totalExpenses = expenses.reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
     const netIncome = totalIncome - totalExpenses;
     const averageTransaction = filtered.length > 0 ? 
-      filtered.reduce((sum, t) => sum + t.amount, 0) / filtered.length : 0;
+filtered.reduce((sum, t) => sum + (t.amount_c || t.amount), 0) / filtered.length : 0;
 
     // Calculate category breakdown for expenses
-    const categoryBreakdown = expenses.reduce((acc, transaction) => {
-      acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+const categoryBreakdown = expenses.reduce((acc, transaction) => {
+      const categoryName = transaction.category_c?.Name || transaction.category;
+      acc[categoryName] = (acc[categoryName] || 0) + (transaction.amount_c || transaction.amount);
       return acc;
     }, {});
 
@@ -116,10 +119,11 @@ const Reports = () => {
     
     if (selectedChart === "pie") {
       // Category breakdown for pie chart
-      const expenses = filtered.filter(t => t.type === "expense");
+const expenses = filtered.filter(t => (t.type_c || t.type) === "expense");
       const categoryTotals = expenses.reduce((acc, transaction) => {
-        acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
-        return acc;
+        const categoryName = transaction.category_c?.Name || transaction.category;
+        acc[categoryName] = (acc[categoryName] || 0) + (transaction.amount_c || transaction.amount);
+return acc;
       }, {});
 
       return Object.entries(categoryTotals).map(([category, amount]) => ({
@@ -128,19 +132,18 @@ const Reports = () => {
       }));
     } else {
       // Daily spending for line chart
-      const expenses = filtered.filter(t => t.type === "expense");
+const expenses = filtered.filter(t => (t.type_c || t.type) === "expense");
       const now = new Date();
       const thirtyDaysAgo = subMonths(now, 1);
       const dateRange = eachDayOfInterval({ start: thirtyDaysAgo, end: now });
 
-      return dateRange.map(date => {
+return dateRange.map(date => {
         const dayExpenses = expenses.filter(transaction => {
-          const transactionDate = parseISO(transaction.date);
+          const transactionDate = parseISO(transaction.date_c || transaction.date);
           return format(transactionDate, "yyyy-MM-dd") === format(date, "yyyy-MM-dd");
         });
 
-        const totalAmount = dayExpenses.reduce((sum, t) => sum + t.amount, 0);
-        
+        const totalAmount = dayExpenses.reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
         return {
           date: format(date, "MMM dd"),
           amount: totalAmount
@@ -158,16 +161,16 @@ const Reports = () => {
     ];
     const monthName = months[currentMonth];
 
-    const currentBudgets = budgets.filter(budget => 
-      budget.month === monthName && budget.year === currentYear
+const currentBudgets = budgets.filter(budget => 
+      (budget.month_c || budget.month) === monthName && (budget.year_c || budget.year) === currentYear
     );
 
-    const totalBudget = currentBudgets.reduce((sum, b) => sum + b.limit, 0);
-    const totalSpent = currentBudgets.reduce((sum, b) => sum + b.spent, 0);
+const totalBudget = currentBudgets.reduce((sum, b) => sum + (b.limit_c || b.limit), 0);
+const totalSpent = currentBudgets.reduce((sum, b) => sum + (b.spent_c || b.spent), 0);
 
     return {
       totalBudget,
-      totalSpent,
+totalSpent,
       remaining: totalBudget - totalSpent,
       utilizationRate: totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0,
       overBudgetCategories: currentBudgets.filter(b => b.spent > b.limit).length

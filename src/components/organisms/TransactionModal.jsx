@@ -12,11 +12,11 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    amount: "",
-    type: "expense",
-    category: "",
-    description: "",
-    date: format(new Date(), "yyyy-MM-dd")
+    amount_c: "",
+    type_c: "expense",
+    category_c: "",
+    description_c: "",
+    date_c: format(new Date(), "yyyy-MM-dd")
   });
 
   useEffect(() => {
@@ -25,24 +25,29 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
 
   useEffect(() => {
     if (transaction) {
+      const amount = transaction.amount_c || transaction.amount;
+      const type = transaction.type_c || transaction.type;
+      const categoryId = transaction.category_c?.Id || transaction.category_c || transaction.category;
+      const description = transaction.description_c || transaction.description;
+      const date = transaction.date_c || transaction.date;
+      
       setFormData({
-        amount: transaction.amount.toString(),
-        type: transaction.type,
-        category: transaction.category,
-        description: transaction.description,
-        date: format(new Date(transaction.date), "yyyy-MM-dd")
+        amount_c: amount.toString(),
+        type_c: type,
+        category_c: categoryId,
+        description_c: description,
+        date_c: format(new Date(date), "yyyy-MM-dd")
       });
     } else {
       setFormData({
-        amount: "",
-        type: "expense",
-        category: "",
-        description: "",
-        date: format(new Date(), "yyyy-MM-dd")
+        amount_c: "",
+        type_c: "expense",
+        category_c: "",
+        description_c: "",
+        date_c: format(new Date(), "yyyy-MM-dd")
       });
     }
   }, [transaction, isOpen]);
-
   const loadCategories = async () => {
     try {
       const data = await categoryService.getAll();
@@ -52,9 +57,9 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
     }
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.amount || !formData.category || !formData.description) {
+    if (!formData.amount_c || !formData.category_c || !formData.description_c) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -62,10 +67,12 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
     setLoading(true);
     try {
       const transactionData = {
-        ...formData,
-        amount: parseFloat(formData.amount),
-        date: new Date(formData.date).toISOString(),
-        createdAt: new Date().toISOString()
+        amount_c: parseFloat(formData.amount_c),
+        type_c: formData.type_c,
+        category_c: formData.category_c,
+        description_c: formData.description_c,
+        date_c: new Date(formData.date_c).toISOString(),
+        created_at_c: new Date().toISOString()
       };
 
       if (transaction) {
@@ -89,10 +96,13 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const getFilteredCategories = () => {
+const getFilteredCategories = () => {
     return categories
-      .filter(cat => cat.type === formData.type)
-      .map(cat => ({ value: cat.name, label: cat.name }));
+      .filter(cat => (cat.type_c || cat.type) === formData.type_c)
+      .map(cat => ({ 
+        value: cat.Id.toString(), 
+        label: cat.Name || cat.name_c || cat.name 
+      }));
   };
 
   return (
@@ -137,17 +147,17 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    value={formData.amount}
-                    onChange={(e) => handleChange("amount", e.target.value)}
+value={formData.amount_c}
+                    onChange={(e) => handleChange("amount_c", e.target.value)}
                     required
                   />
                   <FormField
                     type="select"
                     label="Type"
-                    value={formData.type}
+                    value={formData.type_c}
                     onChange={(e) => {
-                      handleChange("type", e.target.value);
-                      handleChange("category", "");
+                      handleChange("type_c", e.target.value);
+                      handleChange("category_c", "");
                     }}
                     options={[
                       { value: "expense", label: "Expense" },
@@ -157,31 +167,31 @@ const TransactionModal = ({ isOpen, onClose, transaction = null, onSuccess }) =>
                   />
                 </div>
 
-                <FormField
+<FormField
                   type="select"
                   label="Category"
-                  value={formData.category}
-                  onChange={(e) => handleChange("category", e.target.value)}
+                  value={formData.category_c}
+                  onChange={(e) => handleChange("category_c", e.target.value)}
                   options={getFilteredCategories()}
                   placeholder="Select a category"
                   required
                 />
 
-                <FormField
+<FormField
                   type="input"
                   label="Description"
                   placeholder="Enter description"
-                  value={formData.description}
-                  onChange={(e) => handleChange("description", e.target.value)}
+                  value={formData.description_c}
+                  onChange={(e) => handleChange("description_c", e.target.value)}
                   required
                 />
 
-                <FormField
+<FormField
                   type="input"
                   inputType="date"
                   label="Date"
-                  value={formData.date}
-                  onChange={(e) => handleChange("date", e.target.value)}
+                  value={formData.date_c}
+                  onChange={(e) => handleChange("date_c", e.target.value)}
                   required
                 />
 

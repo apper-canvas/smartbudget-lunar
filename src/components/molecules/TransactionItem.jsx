@@ -4,6 +4,12 @@ import Badge from "@/components/atoms/Badge";
 import { format } from "date-fns";
 
 const TransactionItem = ({ transaction, onEdit, onDelete }) => {
+  const amount = transaction.amount_c || transaction.amount;
+  const type = transaction.type_c || transaction.type;
+  const description = transaction.description_c || transaction.description;
+  const categoryName = transaction.category_c?.Name || transaction.category;
+  const date = transaction.date_c || transaction.date;
+
   const formatAmount = (amount, type) => {
     const formatted = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -44,34 +50,34 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
       <div className="flex items-center space-x-4">
         <div className="flex-shrink-0">
           <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-            transaction.type === "income" 
+            type === "income" 
               ? "bg-gradient-to-r from-success-100 to-success-200" 
               : "bg-gradient-to-r from-error-100 to-error-200"
           }`}>
             <ApperIcon 
-              name={getCategoryIcon(transaction.category)} 
+              name={getCategoryIcon(categoryName)} 
               size={18} 
-              className={transaction.type === "income" ? "text-success-600" : "text-error-600"}
+              className={type === "income" ? "text-success-600" : "text-error-600"}
             />
           </div>
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">
-            {transaction.description}
+            {description}
           </p>
           <div className="flex items-center space-x-2 mt-1">
-            <Badge variant={transaction.type === "income" ? "success" : "default"} size="sm">
-              {transaction.category}
+            <Badge variant={type === "income" ? "success" : "default"} size="sm">
+              {categoryName}
             </Badge>
             <span className="text-xs text-gray-500">
-              {format(new Date(transaction.date), "MMM dd, yyyy")}
+              {format(new Date(date), "MMM dd, yyyy")}
             </span>
           </div>
         </div>
       </div>
       <div className="flex items-center space-x-3">
-        <span className={`text-lg font-bold font-tabular ${getAmountColor(transaction.type)}`}>
-          {formatAmount(transaction.amount, transaction.type)}
+        <span className={`text-lg font-bold font-tabular ${getAmountColor(type)}`}>
+          {formatAmount(amount, type)}
         </span>
         <div className="flex items-center space-x-1">
           <button
@@ -91,5 +97,4 @@ const TransactionItem = ({ transaction, onEdit, onDelete }) => {
     </div>
   );
 };
-
 export default TransactionItem;

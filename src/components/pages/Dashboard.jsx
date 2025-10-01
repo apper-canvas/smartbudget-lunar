@@ -72,21 +72,21 @@ const Dashboard = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
-    const monthlyTransactions = transactions.filter(t => {
-      const date = new Date(t.date);
+const monthlyTransactions = transactions.filter(t => {
+      const date = new Date(t.date_c || t.date);
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
     const totalIncome = monthlyTransactions
-      .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter(t => (t.type_c || t.type) === "income")
+      .reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
 
     const totalExpenses = monthlyTransactions
-      .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter(t => (t.type_c || t.type) === "expense")
+      .reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
 
-    const totalBudget = budgets.reduce((sum, b) => sum + b.limit, 0);
-    const budgetUsed = budgets.reduce((sum, b) => sum + b.spent, 0);
+    const totalBudget = budgets.reduce((sum, b) => sum + (b.limit_c || b.limit), 0);
+    const budgetUsed = budgets.reduce((sum, b) => sum + (b.spent_c || b.spent), 0);
 
     return {
       totalIncome,
@@ -97,17 +97,18 @@ const Dashboard = () => {
     };
   };
 
-  const getChartData = () => {
+const getChartData = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
     const monthlyExpenses = transactions.filter(t => {
-      const date = new Date(t.date);
-      return t.type === "expense" && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      const date = new Date(t.date_c || t.date);
+      return (t.type_c || t.type) === "expense" && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
     const categoryTotals = monthlyExpenses.reduce((acc, transaction) => {
-      acc[transaction.category] = (acc[transaction.category] || 0) + transaction.amount;
+      const categoryName = transaction.category_c?.Name || transaction.category;
+      acc[categoryName] = (acc[categoryName] || 0) + (transaction.amount_c || transaction.amount);
       return acc;
     }, {});
 
@@ -117,9 +118,9 @@ const Dashboard = () => {
     }));
   };
 
-  const getRecentTransactions = () => {
+const getRecentTransactions = () => {
     return transactions
-      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .sort((a, b) => new Date(b.date_c || b.date) - new Date(a.date_c || a.date))
       .slice(0, 5);
   };
 
@@ -267,11 +268,14 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {goals.slice(0, 3).map((goal) => {
-              const progress = (goal.currentAmount / goal.targetAmount) * 100;
+{goals.slice(0, 3).map((goal) => {
+              const currentAmount = goal.current_amount_c || goal.currentAmount;
+              const targetAmount = goal.target_amount_c || goal.targetAmount;
+              const goalName = goal.Name || goal.name_c || goal.name;
+              const progress = (currentAmount / targetAmount) * 100;
               return (
                 <div key={goal.Id} className="p-4 border border-gray-200 rounded-lg">
-                  <h4 className="font-medium text-gray-900 mb-2">{goal.name}</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">{goalName}</h4>
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Progress</span>
@@ -284,8 +288,8 @@ const Dashboard = () => {
                       />
                     </div>
                     <div className="flex justify-between text-xs text-gray-500">
-                      <span>${goal.currentAmount.toLocaleString()}</span>
-                      <span>${goal.targetAmount.toLocaleString()}</span>
+                      <span>${currentAmount.toLocaleString()}</span>
+                      <span>${targetAmount.toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

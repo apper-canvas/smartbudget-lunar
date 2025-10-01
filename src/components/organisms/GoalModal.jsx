@@ -10,33 +10,38 @@ import { goalService } from "@/services/api/goalService";
 const GoalModal = ({ isOpen, onClose, goal = null, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    targetAmount: "",
-    currentAmount: "",
-    targetDate: format(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), "yyyy-MM-dd")
+    name_c: "",
+    target_amount_c: "",
+    current_amount_c: "",
+    target_date_c: format(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), "yyyy-MM-dd")
   });
 
-  useEffect(() => {
+useEffect(() => {
     if (goal) {
+      const name = goal.Name || goal.name_c || goal.name;
+      const targetAmount = goal.target_amount_c || goal.targetAmount;
+      const currentAmount = goal.current_amount_c || goal.currentAmount;
+      const targetDate = goal.target_date_c || goal.targetDate;
+      
       setFormData({
-        name: goal.name,
-        targetAmount: goal.targetAmount.toString(),
-        currentAmount: goal.currentAmount.toString(),
-        targetDate: format(new Date(goal.targetDate), "yyyy-MM-dd")
+        name_c: name,
+        target_amount_c: targetAmount.toString(),
+        current_amount_c: currentAmount.toString(),
+        target_date_c: format(new Date(targetDate), "yyyy-MM-dd")
       });
     } else {
       setFormData({
-        name: "",
-        targetAmount: "",
-        currentAmount: "0",
-        targetDate: format(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), "yyyy-MM-dd")
+        name_c: "",
+        target_amount_c: "",
+        current_amount_c: "0",
+        target_date_c: format(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), "yyyy-MM-dd")
       });
     }
   }, [goal, isOpen]);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.targetAmount) {
+    if (!formData.name_c || !formData.target_amount_c) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -44,11 +49,11 @@ const GoalModal = ({ isOpen, onClose, goal = null, onSuccess }) => {
     setLoading(true);
     try {
       const goalData = {
-        ...formData,
-        targetAmount: parseFloat(formData.targetAmount),
-        currentAmount: parseFloat(formData.currentAmount || 0),
-        targetDate: new Date(formData.targetDate).toISOString(),
-        createdAt: goal?.createdAt || new Date().toISOString()
+        name_c: formData.name_c,
+        target_amount_c: parseFloat(formData.target_amount_c),
+        current_amount_c: parseFloat(formData.current_amount_c || 0),
+        target_date_c: new Date(formData.target_date_c).toISOString(),
+        created_at_c: goal?.created_at_c || goal?.createdAt || new Date().toISOString()
       };
 
       if (goal) {
@@ -106,25 +111,25 @@ const GoalModal = ({ isOpen, onClose, goal = null, onSuccess }) => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <FormField
+<FormField
                   type="input"
                   label="Goal Name"
                   placeholder="e.g., Emergency Fund, Vacation"
-                  value={formData.name}
-                  onChange={(e) => handleChange("name", e.target.value)}
+                  value={formData.name_c}
+                  onChange={(e) => handleChange("name_c", e.target.value)}
                   required
                 />
 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
+<FormField
                     type="input"
                     inputType="number"
                     label="Target Amount"
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    value={formData.targetAmount}
-                    onChange={(e) => handleChange("targetAmount", e.target.value)}
+                    value={formData.target_amount_c}
+                    onChange={(e) => handleChange("target_amount_c", e.target.value)}
                     required
                   />
                   <FormField
@@ -134,17 +139,17 @@ const GoalModal = ({ isOpen, onClose, goal = null, onSuccess }) => {
                     placeholder="0.00"
                     step="0.01"
                     min="0"
-                    value={formData.currentAmount}
-                    onChange={(e) => handleChange("currentAmount", e.target.value)}
+                    value={formData.current_amount_c}
+                    onChange={(e) => handleChange("current_amount_c", e.target.value)}
                   />
                 </div>
 
-                <FormField
+<FormField
                   type="input"
                   inputType="date"
                   label="Target Date"
-                  value={formData.targetDate}
-                  onChange={(e) => handleChange("targetDate", e.target.value)}
+                  value={formData.target_date_c}
+                  onChange={(e) => handleChange("target_date_c", e.target.value)}
                   required
                 />
 

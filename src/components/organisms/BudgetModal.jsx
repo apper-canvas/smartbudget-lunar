@@ -11,10 +11,10 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    category: "",
-    limit: "",
-    month: "",
-    year: new Date().getFullYear()
+    category_c: "",
+    limit_c: "",
+    month_c: "",
+    year_c: new Date().getFullYear()
   });
 
   const months = [
@@ -26,37 +26,41 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
     loadCategories();
   }, []);
 
-  useEffect(() => {
+useEffect(() => {
     if (budget) {
+      const categoryId = budget.category_c?.Id || budget.category_c || budget.category;
+      const limit = budget.limit_c || budget.limit;
+      const month = budget.month_c || budget.month;
+      const year = budget.year_c || budget.year;
+      
       setFormData({
-        category: budget.category,
-        limit: budget.limit.toString(),
-        month: budget.month,
-        year: budget.year
+        category_c: categoryId,
+        limit_c: limit.toString(),
+        month_c: month,
+        year_c: year
       });
     } else {
       const currentMonth = months[new Date().getMonth()];
       setFormData({
-        category: "",
-        limit: "",
-        month: currentMonth,
-        year: new Date().getFullYear()
+        category_c: "",
+        limit_c: "",
+        month_c: currentMonth,
+        year_c: new Date().getFullYear()
       });
     }
   }, [budget, isOpen]);
 
-  const loadCategories = async () => {
+const loadCategories = async () => {
     try {
       const data = await categoryService.getAll();
-      setCategories(data.filter(cat => cat.type === "expense"));
+      setCategories(data.filter(cat => (cat.type_c || cat.type) === "expense"));
     } catch (error) {
       toast.error("Failed to load categories");
     }
   };
-
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.category || !formData.limit) {
+    if (!formData.category_c || !formData.limit_c) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -64,9 +68,11 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
     setLoading(true);
     try {
       const budgetData = {
-        ...formData,
-        limit: parseFloat(formData.limit),
-        spent: budget?.spent || 0
+        category_c: formData.category_c,
+        limit_c: parseFloat(formData.limit_c),
+        spent_c: budget?.spent_c || budget?.spent || 0,
+        month_c: formData.month_c,
+        year_c: parseInt(formData.year_c)
       };
 
       if (budget) {
@@ -90,8 +96,11 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const getCategoryOptions = () => {
-    return categories.map(cat => ({ value: cat.name, label: cat.name }));
+const getCategoryOptions = () => {
+    return categories.map(cat => ({ 
+      value: cat.Id.toString(), 
+      label: cat.Name || cat.name_c || cat.name 
+    }));
   };
 
   const getMonthOptions = () => {
@@ -140,42 +149,41 @@ const BudgetModal = ({ isOpen, onClose, budget = null, onSuccess }) => {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                <FormField
+<FormField
                   type="select"
                   label="Category"
-                  value={formData.category}
-                  onChange={(e) => handleChange("category", e.target.value)}
+                  value={formData.category_c}
+                  onChange={(e) => handleChange("category_c", e.target.value)}
                   options={getCategoryOptions()}
                   placeholder="Select a category"
                   required
                 />
-
-                <FormField
+<FormField
                   type="input"
                   inputType="number"
                   label="Budget Limit"
                   placeholder="0.00"
                   step="0.01"
                   min="0"
-                  value={formData.limit}
-                  onChange={(e) => handleChange("limit", e.target.value)}
+                  value={formData.limit_c}
+                  onChange={(e) => handleChange("limit_c", e.target.value)}
                   required
                 />
 
                 <div className="grid grid-cols-2 gap-4">
-                  <FormField
+<FormField
                     type="select"
                     label="Month"
-                    value={formData.month}
-                    onChange={(e) => handleChange("month", e.target.value)}
+                    value={formData.month_c}
+                    onChange={(e) => handleChange("month_c", e.target.value)}
                     options={getMonthOptions()}
                     required
                   />
                   <FormField
                     type="select"
                     label="Year"
-                    value={formData.year}
-                    onChange={(e) => handleChange("year", parseInt(e.target.value))}
+                    value={formData.year_c}
+                    onChange={(e) => handleChange("year_c", parseInt(e.target.value))}
                     options={getYearOptions()}
                     required
                   />

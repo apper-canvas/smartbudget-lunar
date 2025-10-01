@@ -17,7 +17,7 @@ const SpendingChart = ({ data, type = "pie" }) => {
       type: "pie",
       toolbar: { show: false }
     },
-    labels: data.map(item => item.category),
+labels: data.map(item => item.category_c?.Name || item.category),
     colors: [
       "#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6",
       "#06b6d4", "#84cc16", "#f97316", "#ec4899", "#6366f1"
@@ -66,7 +66,7 @@ const SpendingChart = ({ data, type = "pie" }) => {
       width: 3
     },
     xaxis: {
-      categories: data.map(item => item.date),
+categories: data.map(item => item.date_c || item.date),
       labels: {
         style: {
           fontSize: "12px"
@@ -98,10 +98,10 @@ const SpendingChart = ({ data, type = "pie" }) => {
   };
 
   const chartData = type === "pie" 
-    ? data.map(item => item.amount)
+? data.map(item => item.amount_c || item.amount)
     : [{
         name: "Spending",
-        data: data.map(item => item.amount)
+        data: data.map(item => item.amount_c || item.amount)
       }];
 
   return (

@@ -1,19 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import TransactionItem from "@/components/molecules/TransactionItem";
-import SearchBar from "@/components/molecules/SearchBar";
-import TransactionModal from "@/components/organisms/TransactionModal";
-import Button from "@/components/atoms/Button";
-import Select from "@/components/atoms/Select";
-import Badge from "@/components/atoms/Badge";
-import ApperIcon from "@/components/ApperIcon";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
 import { transactionService } from "@/services/api/transactionService";
 import { categoryService } from "@/services/api/categoryService";
 import { toast } from "react-toastify";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { endOfMonth, format, startOfMonth } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import Badge from "@/components/atoms/Badge";
+import TransactionModal from "@/components/organisms/TransactionModal";
+import SearchBar from "@/components/molecules/SearchBar";
+import TransactionItem from "@/components/molecules/TransactionItem";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
 
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -72,25 +72,30 @@ const Transactions = () => {
     loadData();
   };
 
-  const getFilteredTransactions = () => {
+const getFilteredTransactions = () => {
     let filtered = transactions;
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(transaction =>
-        transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(transaction => {
+        const description = transaction.description_c || transaction.description || "";
+        const categoryName = transaction.category_c?.Name || transaction.category || "";
+        return description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               categoryName.toLowerCase().includes(searchTerm.toLowerCase());
+      });
     }
 
     // Category filter
     if (selectedCategory) {
-      filtered = filtered.filter(transaction => transaction.category === selectedCategory);
+      filtered = filtered.filter(transaction => {
+        const categoryName = transaction.category_c?.Name || transaction.category;
+        return categoryName === selectedCategory;
+      });
     }
 
     // Type filter
     if (selectedType) {
-      filtered = filtered.filter(transaction => transaction.type === selectedType);
+      filtered = filtered.filter(transaction => (transaction.type_c || transaction.type) === selectedType);
     }
 
     // Date range filter
@@ -119,24 +124,24 @@ const Transactions = () => {
 
       if (startDate && endDate) {
         filtered = filtered.filter(transaction => {
-          const transactionDate = new Date(transaction.date);
+          const transactionDate = new Date(transaction.date_c || transaction.date);
           return transactionDate >= startDate && transactionDate <= endDate;
         });
       }
     }
 
-    return filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return filtered.sort((a, b) => new Date(b.date_c || b.date) - new Date(a.date_c || a.date));
   };
 
-  const getStats = () => {
+const getStats = () => {
     const filtered = getFilteredTransactions();
     const totalIncome = filtered
-      .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter(t => (t.type_c || t.type) === "income")
+      .reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
     
     const totalExpenses = filtered
-      .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .filter(t => (t.type_c || t.type) === "expense")
+      .reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
 
     return {
       totalTransactions: filtered.length,
@@ -156,7 +161,10 @@ const Transactions = () => {
   const filteredTransactions = getFilteredTransactions();
   const stats = getStats();
 
-  const categoryOptions = categories.map(cat => ({ value: cat.name, label: cat.name }));
+const categoryOptions = categories.map(cat => ({ 
+    value: cat.Name || cat.name_c || cat.name, 
+    label: cat.Name || cat.name_c || cat.name 
+  }));
   const typeOptions = [
     { value: "income", label: "Income" },
     { value: "expense", label: "Expense" }

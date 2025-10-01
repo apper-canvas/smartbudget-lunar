@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "@/components/organisms/Sidebar";
 import ApperIcon from "@/components/ApperIcon";
-
+import Button from "@/components/atoms/Button";
+import { AuthContext } from "../../App";
 const Layout = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
+  const { logout } = useContext(AuthContext);
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-screen">
@@ -26,7 +27,7 @@ const Layout = () => {
               >
                 <ApperIcon name="Menu" size={20} />
               </button>
-              <div className="flex items-center space-x-2">
+<div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
                   <ApperIcon name="DollarSign" size={16} className="text-white" />
                 </div>
@@ -34,7 +35,15 @@ const Layout = () => {
                   SmartBudget
                 </span>
               </div>
-              <div className="w-10" />
+              <Button
+                onClick={logout}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ApperIcon name="LogOut" size={18} className="mr-2" />
+                Logout
+              </Button>
             </div>
           </div>
 

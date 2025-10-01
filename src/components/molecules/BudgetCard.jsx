@@ -4,8 +4,14 @@ import ProgressBar from "@/components/atoms/ProgressBar";
 import ApperIcon from "@/components/ApperIcon";
 
 const BudgetCard = ({ budget, onEdit }) => {
-  const percentage = budget.limit > 0 ? (budget.spent / budget.limit) * 100 : 0;
-  const remaining = budget.limit - budget.spent;
+  const limit = budget.limit_c || budget.limit;
+  const spent = budget.spent_c || budget.spent;
+  const categoryName = budget.category_c?.Name || budget.category;
+  const month = budget.month_c || budget.month;
+  const year = budget.year_c || budget.year;
+  
+  const percentage = limit > 0 ? (spent / limit) * 100 : 0;
+  const remaining = limit - spent;
   const isOverBudget = percentage > 100;
   const isNearLimit = percentage > 80 && percentage <= 100;
 
@@ -52,7 +58,7 @@ const BudgetCard = ({ budget, onEdit }) => {
                 : "bg-gradient-to-r from-success-100 to-success-200"
           }`}>
             <ApperIcon 
-              name={getCategoryIcon(budget.category)} 
+              name={getCategoryIcon(categoryName)} 
               size={20} 
               className={
                 isOverBudget 
@@ -64,9 +70,9 @@ const BudgetCard = ({ budget, onEdit }) => {
             />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{budget.category}</h3>
+            <h3 className="font-semibold text-gray-900">{categoryName}</h3>
             <p className="text-sm text-gray-500">
-              {budget.month} {budget.year}
+              {month} {year}
             </p>
           </div>
         </div>
@@ -82,13 +88,13 @@ const BudgetCard = ({ budget, onEdit }) => {
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Spent</span>
           <span className="font-medium text-gray-900 font-tabular">
-            {formatCurrency(budget.spent)} of {formatCurrency(budget.limit)}
+            {formatCurrency(spent)} of {formatCurrency(limit)}
           </span>
         </div>
         
         <ProgressBar
-          value={budget.spent}
-          max={budget.limit}
+          value={spent}
+          max={limit}
           variant={getProgressVariant()}
           size="md"
         />

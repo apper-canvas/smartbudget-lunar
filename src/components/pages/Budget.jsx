@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import BudgetCard from "@/components/molecules/BudgetCard";
-import BudgetModal from "@/components/organisms/BudgetModal";
-import Button from "@/components/atoms/Button";
-import Select from "@/components/atoms/Select";
-import ApperIcon from "@/components/ApperIcon";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
 import { budgetService } from "@/services/api/budgetService";
 import { transactionService } from "@/services/api/transactionService";
 import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import Button from "@/components/atoms/Button";
+import Select from "@/components/atoms/Select";
+import BudgetModal from "@/components/organisms/BudgetModal";
+import BudgetCard from "@/components/molecules/BudgetCard";
+import Error from "@/components/ui/Error";
+import Empty from "@/components/ui/Empty";
+import Loading from "@/components/ui/Loading";
 
 const Budget = () => {
   const [budgets, setBudgets] = useState([]);
@@ -33,12 +33,12 @@ const Budget = () => {
   }, [currentMonth]);
 
   useEffect(() => {
-    if (selectedMonth && selectedYear) {
+if (selectedMonth && selectedYear) {
       loadData();
     }
   }, [selectedMonth, selectedYear]);
 
-  const loadData = async () => {
+const loadData = async () => {
     setLoading(true);
     setError("");
     try {
@@ -49,31 +49,36 @@ const Budget = () => {
 
       // Filter budgets by selected month/year
       const filteredBudgets = budgetsData.filter(budget => 
-        budget.month === selectedMonth && budget.year === selectedYear
+        (budget.month_c || budget.month) === selectedMonth && 
+        (budget.year_c || budget.year) === selectedYear
       );
 
-      // Calculate spent amounts from transactions
+// Calculate spent amounts from transactions
       const updatedBudgets = await Promise.all(
         filteredBudgets.map(async (budget) => {
-          const monthlyExpenses = transactionsData.filter(transaction => {
-            const transactionDate = new Date(transaction.date);
-            const transactionMonth = months[transactionDate.getMonth()];
-            const transactionYear = transactionDate.getFullYear();
-            
-            return (
-              transaction.type === "expense" &&
-              transaction.category === budget.category &&
-              transactionMonth === selectedMonth &&
-              transactionYear === selectedYear
-            );
-          });
+          const categoryName = budget.category_c?.Name || budget.category;
+          const spent = transactionsData
+            .filter(transaction => {
+              const transactionDate = new Date(transaction.date_c || transaction.date);
+              const transactionMonth = months[transactionDate.getMonth()];
+              const transactionYear = transactionDate.getFullYear();
+              const transactionCategory = transaction.category_c?.Name || transaction.category;
+              return (
+                transactionCategory === categoryName &&
+                transactionMonth === selectedMonth &&
+                transactionYear === selectedYear &&
+                (transaction.type_c || transaction.type) === "expense"
+              );
+            })
+            .reduce((sum, t) => sum + (t.amount_c || t.amount), 0);
 
-          const spent = monthlyExpenses.reduce((sum, t) => sum + t.amount, 0);
+          const updatedBudget = { 
+            ...budget, 
+            spent_c: spent,
+            spent: spent
+          };
           
-          // Update budget with current spent amount
-          const updatedBudget = { ...budget, spent };
           await budgetService.update(budget.Id, updatedBudget);
-          
           return updatedBudget;
         })
       );
@@ -95,12 +100,13 @@ const Budget = () => {
     loadData();
   };
 
-  const getBudgetSummary = () => {
-    const totalBudget = budgets.reduce((sum, budget) => sum + budget.limit, 0);
-    const totalSpent = budgets.reduce((sum, budget) => sum + budget.spent, 0);
+const getBudgetSummary = () => {
+    const totalBudget = budgets.reduce((sum, budget) => sum + (budget.limit_c || budget.limit), 0);
+    const totalSpent = budgets.reduce((sum, budget) => sum + (budget.spent_c || budget.spent), 0);
     const totalRemaining = totalBudget - totalSpent;
-    const budgetsOverLimit = budgets.filter(budget => budget.spent > budget.limit).length;
-
+    const budgetsOverLimit = budgets.filter(budget => 
+      (budget.spent_c || budget.spent) > (budget.limit_c || budget.limit)
+    ).length;
     return {
       totalBudget,
       totalSpent,
